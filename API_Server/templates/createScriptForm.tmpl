@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>New Command Form</title>
+		<style>
+			body, html {
+			  height: 100%;
+			  margin: 0;
+			  display: flex;
+			  justify-content: center;
+			  align-items: center;
+			}
+			form {
+			  width: 300px;
+			  padding: 20px; 
+			  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			}
+
+			.container2{
+
+            position: absolute;
+            bottom: 180px;
+            background-color: grey;
+            }
+			
+		  </style>
+	</head>
+	<body style="background-color: #00284D">
+		<button id="loadFromFileButton">Загрузить скрипт из файла</button>
+		<button id="loadFromTextButton">Ввести свой скрипт</button>
+		<button id="allCommandsList">Все команды</button>
+
+		<div class='container2' >
+		<div id="insideFlex" style="display: flex; flex-direction: column;">
+		<label style=" font-size: 14px";>id скрипта вы можете найти через список всех команд</label>
+		<input type="text" id="scriptId" placeholder="Введите id скрипта">
+		<button id = "scriptIdButton">Перейти к скрипту</button>
+		</div>
+		</div>
+		
+		<form id="textUploadForm"  style="display:none;">
+			<div id = "contayner1" style="display:flex; flex-direction: column; justify-content: center">
+			<textarea  rows="1" cols="50" id="areaOnForm" placeholder="Enter your script here->" :required style="height:20%; overflow:hidden; "></textarea>
+			<button  type="submit" id = "executeButton">Выполнить</button>
+			<button type="button" id="backToCreatePage">Назад</button>
+			</div>
+		</form>
+		
+		<form id="fileUploadForm"  method="post" enctype = "multipart/form-data" style="display:none;" >
+			<div id="contayner1" style="display:flex; flex-direction: column; justify-content: center">
+    		<input type="file" id="loadFileInput" name="loadFileInput" accept=".sh" style="color: #009FE3">
+    		<button type="submit" id="executeFileButton" disabled>Выполнить</button>
+			<button type="button" id="backButtonFileForm">Назад</button>
+			<div>
+		</form>
+
+		
+	
+		<script>
+
+			var loadFromFileButton=document.getElementById('loadFromFileButton');//кнопка открытия формы загрузки файла
+			var loadFromTextButton=document.getElementById('loadFromTextButton');//кнопка открытия формы загрузки текста
+			var allCommandsListButton=document.getElementById('allCommandsList');//кнопка открытия страницы со списком команд
+
+
+			var textUploadForm = document.getElementById('textUploadForm');//форма загрузки файла
+			var textAreaOnForm = document.getElementById('areaOnForm');//текстовое поле на форме загрузки текста
+			var executeButtonTextForm = document.getElementById('executeButton');//кнопка отправки формы текстом на сервер
+			var backButtonTextForm = document.getElementById('backToCreatePage');//кнопка для возвращения на экран Command/Create из формы текста
+
+
+			var fileUploadForm = document.getElementById('fileUploadForm');//форма загрузки текста
+			var loadFileInput = document.getElementById('loadFileInput');//поле загрузки файла на форме
+			var executeFileButton = document.getElementById('executeFileButton');//кнопка отправки формы файлом на сервер
+			var backButtonFileForm = document.getElementById('backButtonFileForm');//кнопка для возвращения на экран Command/Create из формы файла
+
+			loadFileInput.addEventListener('change',function(){
+				if (loadFileInput.value) { // Проверяем, был ли выбран файл
+				executeFileButton.disabled = false; // Разрешаем нажатие на кнопку, если файл выбран
+				} else {
+				executeFileButton.disabled = true; // Запрещаем нажатие на кнопку, если файл не выбран
+				}
+			})
+
+			loadFromFileButton.addEventListener('click', function(){//обработчик перехода на форму загрузки файла
+				loadFromFileButton.style.display='none';
+				loadFromTextButton.style.display='none';
+				allCommandsListButton.style.display='none';
+				fileUploadForm.style.display='block';
+			})
+			
+			loadFromTextButton.addEventListener('click', function(){//обработчик перехода на форму загрузки текста
+				loadFromFileButton.style.display='none';
+				loadFromTextButton.style.display='none';
+				allCommandsListButton.style.display='none';	
+				textUploadForm.style.display='block';
+			})
+
+			allCommandsListButton.addEventListener('click', function() {
+            // Переходим на указанный URL
+            window.location.href = '/Command/All';
+        	});
+
+			textAreaOnForm.addEventListener('keyup', function(){//обработчик для увеличения площади поля при больших скриптах
+				if(this.scrollTop > 0){
+					this.style.height = this.scrollHeight + "px";
+				}
+			});
+			
+			//отправка скрипта в форме текста
+			textUploadForm.addEventListener('submit', function(event) { 
+				event.preventDefault(); // Предотвращаем стандартную отправку формы
+				var textInput = document.getElementById('areaOnForm').value;
+				if (textInput==""){
+				alert("Я пока не умею делать скрипты из пустоты, пожалуйста введите команду :)");
+				} else{
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', '/save-text', true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState == 4 && xhr.status == 200) {
+						console.log('Text saved successfully.');
+						window.location.href = '/Command/Create/';
+					} else {
+						console.error('An error occurred while saving the text.');
+					}
+				};
+				xhr.send(JSON.stringify({text: textInput}));
+				}
+			});
+
+			executeFileButton.addEventListener('click', function(event) {
+				
+				var formData = new FormData(event.target.form);
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', '/upload-file', true);
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState == 4 && xhr.status == 200) {
+						// После успешной загрузки файла перезагружаем страницу на URL /Command/Create/
+						
+					}
+				};
+				xhr.send(formData);
+			});
+			
+
+			backButtonTextForm.addEventListener('click', function(){
+				textUploadForm.style.display='none';
+				loadFromFileButton.style.display='block';
+				loadFromTextButton.style.display='block';
+				allCommandsListButton.style.display='block';
+			})
+
+			backButtonFileForm.addEventListener('click', function(){
+				fileUploadForm.style.display='none';
+				loadFromFileButton.style.display='block';
+				loadFromTextButton.style.display='block';
+				allCommandsListButton.style.display='block';
+			})
+			
+			document.getElementById('scriptIdButton').addEventListener('click', function() {
+            var id = document.getElementById('scriptId').value;
+            console.log(id)
+            if (id){
+                window.location.href = '/Command/'+encodeURIComponent(id);
+            }
+        	});
+		</script>
+	</body>
+	</html>
